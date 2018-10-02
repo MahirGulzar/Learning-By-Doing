@@ -1,0 +1,87 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Computer Graphics - Task 1.1</title>
+		<meta charset="UTF-8">
+		<script type="text/javascript">
+		
+			function onLoad() { //This will be called once the page is loaded
+				//drawTriangle([300.0, 200.0]); //This should draw you a triangle with the midpoint at [150, 150]. -->
+				polygon(300,300,100,3,11, true);
+			}
+			
+			function drawTriangle(position) {
+				var canvas = document.getElementById('myCanvas'); //This is the <canvas> HTML element
+
+				<!-- /* -->
+					<!-- Task is to finish this function. You need: -->
+						<!-- 1) Choose a fixed value to determine the size of the triangle. For example the edge length in pixels.
+						<!-- 2) Find the coordinates of the vertices -->
+						<!-- 3) Draw on the "context". Look up methods like beginPath(), moveTo(), lineTo(), closePath(), fill() -->
+						<!-- 4) Use console.log() to debug -->
+
+				
+				
+				var ctx = canvas.getContext('2d');
+
+
+
+				var X = position[0];
+				var Y = position[1]; 
+
+				var height = 170*(Math.cos(Math.PI/6));
+				ctx.beginPath();
+				ctx.moveTo(X, Y);
+
+				ctx.lineTo(X-(height/2),Y+height);
+				ctx.lineTo(X+(height/2),Y+height);
+				ctx.lineTo(X,Y);
+				
+				ctx.stroke();
+				ctx.fillStyle = "red";
+				ctx.fill();
+				ctx.closePath();
+				
+				ctx.beginPath();
+				var newh=Y+height;
+				ctx.moveTo(X, Y+height);
+				ctx.lineTo(X-(height/4),newh-(height/2));
+				ctx.lineTo(X+(height/4),newh-(height/2));
+				ctx.lineTo(X,newh);
+				
+				ctx.stroke();
+				ctx.fillStyle = "blue";
+				ctx.fill();
+				ctx.closePath();
+			}
+			
+			function polygon(x, y, radius, sides, startAngle, anticlockwise) {
+				var canvas = document.getElementById('myCanvas'); //This is the <canvas> HTML element
+				var ctx = canvas.getContext('2d');
+				console.log("hello");
+				
+				<!-- if (sides < 3) return; -->
+				var a = (Math.PI * 2)/sides;
+				<!-- a = anticlockwise?-a:a; -->
+				ctx.save();
+				ctx.translate(x,y);
+				ctx.rotate(startAngle);
+				ctx.moveTo(radius,0);
+				for (var i = 1; i < sides; i++) {
+				
+				ctx.lineTo(radius*Math.cos(a*i),radius*Math.sin(a*i));
+				}
+				ctx.lineTo(radius,0);
+				ctx.stroke();
+				ctx.fillStyle = "green";
+				ctx.fill();
+				ctx.closePath();
+				ctx.restore();
+			}
+		
+		</script>
+	</head>
+	<body onload="onLoad()">
+		<canvas width="800" height="500" id="myCanvas"></canvas>
+	</body>
+</html>
