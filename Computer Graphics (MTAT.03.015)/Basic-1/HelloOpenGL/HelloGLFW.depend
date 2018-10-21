@@ -1,0 +1,37 @@
+# depslib dependency file v1.0
+1423732657 source:c:\users\margus\documents\arvutigraafika\cglearn\app\storage\solutions\1\helloglfw\main.cpp
+	<stdlib.h>
+	<unistd.h>
+	<GLFW/glfw3.h>
+
+1388517273 c:\users\margus\documents\arvutigraafika\cglearn\app\storage\solutions\1\helloglfw\include\glfw\glfw3.h
+	<stddef.h>
+	<OpenGL/gl3.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/glcorearb.h>
+	<GLES/gl.h>
+	<GLES2/gl2.h>
+	<GLES3/gl3.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
+1538308141 source:c:\my drive\semester-3\computer graphics\basic-1\tasks\helloopengl\src\main.cpp
+	<stdlib.h>
+	<stdio.h>
+	<unistd.h>
+	<GLFW/glfw3.h>
+	<math.h>
+
+1388517273 c:\my drive\semester-3\computer graphics\basic-1\tasks\helloopengl\include\glfw\glfw3.h
+	<stddef.h>
+	<OpenGL/gl3.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/glcorearb.h>
+	<GLES/gl.h>
+	<GLES2/gl2.h>
+	<GLES3/gl3.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
