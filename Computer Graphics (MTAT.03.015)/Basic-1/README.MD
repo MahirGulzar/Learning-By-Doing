@@ -13,6 +13,8 @@ I keep my homework exercise which include texts and codes here.
 - HelloThreeJS
 - HelloOpenGL 
 - HelloAllergo
+- Bresenham Line Allergo
+- Bresenham Triangle Allergo
 
 
 
