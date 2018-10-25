@@ -1,0 +1,268 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Computer Graphics - Task 4.1</title>
+		<meta charset="UTF-8">
+		<script type="text/javascript" src="three.r96.js"></script>
+		<script type="text/javascript">
+		
+			var renderer, scene, camera;
+			var chopper;
+			
+			//Two variables that hold our shader code. This code will be sent to the GPU.
+			var cubeVertexShader, cubeFragmentShader;
+			
+			/**
+			 * Function to tell us the milliseconds
+			 */
+			function millis() {
+
+				return (new Date()).getTime();
+			}
+			
+			/**
+			 * Converts degrees to radians
+			 */
+			function toRad(degree) {
+			
+				return Math.PI * 2 * degree / 360;
+			}
+		
+			function onLoad() { 
+				var canvasContainer = document.getElementById('myCanvasContainer'); 
+				var width = 800; 
+				var height = 500;
+				
+				//We will load the shader code from the HTML elements.
+				//You could have them in another file and load in that file via Ajax, but that results in more code.
+				cubeVertexShader = document.getElementById('vertexShader').textContent;
+				cubeFragmentShader = document.getElementById('fragmentShader').textContent;
+				
+				renderer = new THREE.WebGLRenderer(); 
+				renderer.setSize(width, height);
+				canvasContainer.appendChild(renderer.domElement);
+				
+				scene = new THREE.Scene();
+				
+				//We will use a perspective camera, with FOV 80 degrees, correct aspect ratio, near plane at distance 1, far plane at distance 1000
+				camera = new THREE.PerspectiveCamera(80, width / height, 1, 1000);
+				camera.position.z = 15;
+				camera.position.y = 2;
+				camera.up = new THREE.Vector3(0, 1, 0);
+				camera.lookAt(new THREE.Vector3(0, 0, 0));
+				scene.add(camera);
+				
+				scene.add(createHangar());
+				chopper = createChopper();
+				scene.add(chopper);
+				
+				
+				draw();
+			}
+			
+			function draw() {
+				requestAnimationFrame(draw);
+				
+				//--Task-- Copy the rotation code from the previous task here.
+
+				chopper.children[1].rotation.set(0, toRad(-(millis() / 10) % 360), 0);
+
+				
+				renderer.render(scene, camera); //We render our scene with our camera
+			}
+			
+			/**
+			 * Create the hangar with walls.
+			 * Hangar currently consists of 5 walls which have different colors.
+			 */
+			function createHangar() {
+				var hangar = new THREE.Object3D();
+				var halfPi = Math.PI / 2;
+				
+				var leftWall = createWall(0x555555);
+				leftWall.position.set(-10, 0, 0);
+				leftWall.rotation.set(0, halfPi, 0);
+				hangar.add(leftWall);
+				
+				var rightWall = createWall(0x333333);
+				rightWall.position.set(10, 0, 0);
+				rightWall.rotation.set(0, -halfPi, 0);
+				hangar.add(rightWall);
+				
+				var backWall = createWall(0x444444);
+				backWall.position.set(0, 0, -10);
+				hangar.add(backWall);
+				
+				var ceiling = createWall(0x111111);
+				ceiling.position.set(0, 10, 0);
+				ceiling.rotation.set(halfPi, 0, 0);
+				hangar.add(ceiling);
+				
+				var floor = createWall(0x222222);
+				floor.position.set(0, -10, 0);
+				floor.rotation.set(-halfPi, 0, 0);
+				hangar.add(floor);
+				
+				return hangar;
+			}
+			
+			/**
+			 * This function creates the chopper.
+			 * --Task-- Copy the code from the previous task here.
+			 */
+			function createChopper() {
+				var chopper = new THREE.Object3D();
+				
+				var body = createCube(0xeeeeee);
+				<!-- body -->
+				body.position.set(0, -10, -5);
+				body.scale.set(3, 2, 2);
+				//Set the scale and position of the body here:
+				//Scale the cube to be a long and thick cuboid
+				//Position it a bit towards the floor
+				//Try to have the body and the blades be somehow centered in the chopper's local coordinate system
+				chopper.add(body);
+				
+				//Group the blades in one Object3D called "blades"
+				var blades = new THREE.Object3D();
+				
+				
+				var blade1 = createCube(0xcceecc);
+				//Scale and position the blade 1 in relation to the blades object
+				blade1.position.set(3.2, 0, 0);
+				blade1.scale.set(3, 0.3, 0.5);
+				
+				var blade2 = createCube(0xcceecc);
+				//Scale and position the blade 2 in relation to the blades object
+				blade2.position.set(-3.2, 0, 0);
+				blade2.scale.set(3, 0.3, 0.5);
+				blade2.rotation.z = Math.PI;
+				blade2.rotation.x = Math.PI;
+				
+				blades.add(blade1);
+				blades.add(blade2);
+				
+				blades.position.set(0, -7.5, -5);
+				body.position.set(0, -10, -5);
+				
+				
+				//Add the blades to the chopper and chopper to the scene.
+				chopper.add(blades);
+				chopper.position.set(0, 5, 0);
+				scene.add(chopper);
+				
+				return chopper;
+			}
+			
+			/**
+			 * Creates a cube.
+			 * --Task-- Finish this function.
+			 */
+			function createCube(colorCode) {
+				var geometry = new THREE.BoxBufferGeometry(2, 2, 2); //Vertices shared across one cube face only!
+				
+				//The THREE.Color class allows some operations to be done with the color
+				//Let us say that a dark color is half of the color given to the function
+				var darkColor = new THREE.Color(colorCode).multiplyScalar(0.5);
+
+				var lightColor = new THREE.Color(colorCode);
+				
+				//--Task-- Create also the lightColor object.
+				
+				/*
+				  There are 2 types of variables we can send to the GPU:
+				  Uniform variable - a variable that is the same for all vertices and fragments
+				  Attribute variable - a variable that has a specific value for each vertex
+				  In this task we will use attribute variables to specify colors for the vertices.
+				*/
+				
+				/*  --Task--
+					Attribute variables used like this:
+					1) Create a Float32Array (typed JS array) with a correct size, eg: (vertexCount * elementsPerVertexCount)
+					2) Assign correct values to each of the elements in the typed array (use a for loop here)
+					3) Call something like: geometry.addAttribute("variableName", new THREE.BufferAttribute(yourTypedArray, elementsPerVertexCount));
+				*/
+
+				var colorsArray = [];
+				for (var i = 0; i < 24; ++i) {
+					// After hours of hitting my head around 
+					// I came across this weird pattern of numbers in JS may be you can enlighten me on this :/.. 
+					if((i >= 4 && i <= 8) 
+						|| i == 10 
+						|| i == 16 
+						|| i == 18 
+						|| i == 21 
+						|| i == 23)
+						colorsArray.push(darkColor.r, darkColor.g, darkColor.b);
+					else
+						colorsArray.push(lightColor.r, lightColor.g, lightColor.b);
+				}
+				geometry.addAttribute('vertexColor', new THREE.BufferAttribute(new Float32Array(colorsArray), 3));
+
+				
+				//ShaderMaterial wants the shader codes and values for uniform variables (which we do not use here).
+				var material = new THREE.ShaderMaterial({
+					vertexShader: cubeVertexShader,    //Assign shader codes
+					fragmentShader: cubeFragmentShader
+				});
+				var cube = new THREE.Mesh(geometry, material); //We create our cube with that material
+				
+				return cube;
+			}
+			
+			/**
+			 * Creates a wall using the plane geometry.
+			 */
+			function createWall(colorCode) {
+				var geometry = new THREE.PlaneGeometry(20, 20, 1);
+				var material = new THREE.MeshBasicMaterial({color: colorCode});
+				var wall = new THREE.Mesh(geometry, material);
+				
+				return wall;
+			}
+			
+		</script>
+		<!-- --Task-- Write the shaders below -->
+		<!--
+			Three.js will add a lot of commonly used variables to the shaders itself.
+			For example:
+				projectionMatrix - the projection matrix (depends on the camera)
+				modelViewMatrix - the modelview matrix (depends on the current transformations)
+				position - the current position of our vertex in 3D local space, vec3.
+				
+			A vertex shader must assign the transformed coordinate to the variable gl_Position. 
+			The coordinate must be transformed to the clip space coordinate.
+		-->
+		<script id="vertexShader" type="x-shader/x-vertex">
+			attribute vec3 vertexColor; 	//This is the color we are sending from the CPU
+			varying vec3 interpolatedColor; //Varying variable is interpolated for the rasterized fragments between the vertices (like in the Bresenham Triangle task)
+			void main() {
+				//1) Assign the attribute color value to the varying color value.
+
+				//2) Transform our vertex position by multiplying it from the left with modelview (MV) matrix, then from the left with projection (P) matrix.
+				//   So like: P * MV * vertex
+				//   Hint: Inspect the shader code to see what names Three.js actually gives those matrices
+
+				interpolatedColor = vertexColor;
+
+				gl_Position =  projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			}
+		</script>
+		
+		<!-- 
+			Fragment shader is ran for each rasterized fragment. Job of a fragment shader is to assign a color value for the fragment.
+			That color value must be assigned to a variable named gl_FragColor.
+		-->
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			varying vec3 interpolatedColor;
+			
+			void main() {
+				//Assign the interpolated color to the correct variable.
+				gl_FragColor = vec4( interpolatedColor ,1);
+			}
+		</script>
+	</head>
+	<body onload="onLoad()">
+		<div id="myCanvasContainer"></div>
+	</body>
+</html>
