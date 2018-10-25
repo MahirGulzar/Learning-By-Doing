@@ -6,5 +6,8 @@ Its aim is for self-reference, and fellow schoolmates reference.
 ## Fall 2017
 - Advanced Algorithmics
 
+## Fall 2018
+- Computer Graphics
+
 ### Notice
-There is no gurantee for correctness of any of the materials available on this repo.
+There is no guarantee for correctness of any of the materials available on this repo.

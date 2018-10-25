@@ -16,5 +16,6 @@ I keep my homework exercise which include texts and codes here.
 - Bresenham Line Allergo
 - Bresenham Triangle Allergo
 - Cube Chopper (ThreeJS)
+- Flying Cube Chopper (ThreeJS)
 
 
