@@ -1,0 +1,301 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Computer Graphics - Task 3.1</title>
+		<meta charset="UTF-8">
+		<script type="text/javascript" src="three.r96.js"></script>
+		<script type="text/javascript" src="keydrown.js"></script>
+		<script type="text/javascript">
+		
+			var renderer, scene, camera;
+			var chopper; //We will store our main object (the chopper) in this variable
+			var angle = 0;
+			var rotationOverride = false;
+			var clock;
+			var delta;
+			var moveSpeed = 10;
+			
+			/**
+			 * Function to tell us the milliseconds
+			 */
+			function millis() {
+
+				return (new Date()).getTime();
+			}
+			
+			/**
+			 * Converts degrees to radians
+			 */
+			function toRad(degree) {
+			
+				return Math.PI * 2 * degree / 360;
+			}
+		
+			function onLoad() { 
+				clock= new THREE.Clock();
+				time = clock.getElapsedTime();
+ 				delta = clock.getDelta();
+
+				var canvasContainer = document.getElementById('myCanvasContainer'); 
+				var width = 800; 
+				var height = 500;
+				
+				renderer = new THREE.WebGLRenderer(); 
+				renderer.setSize(width, height);
+				canvasContainer.appendChild(renderer.domElement);
+				
+				scene = new THREE.Scene();
+				
+				//We will use a perspective camera, with FOV 80 degrees, correct aspect ratio, near plane at distance 1, far plane at distance 1000
+				camera = new THREE.PerspectiveCamera(80, width / height, 1, 1000);
+				camera.position.z = 15; //Push the camera along the z-direction
+				camera.position.y = 2; //Push the camera a bit upwards, if you want
+				camera.up = new THREE.Vector3(0,1,0);	//The up-direction of the camera
+				camera.lookAt(new THREE.Vector3(0,0,0)); //Camera will be looking at the center of the scene
+				scene.add(camera);
+				
+				addHangar();	//This will create and add the hangar walls to the scene
+				chopper = addChopper(); //This will create and add the chopper itself
+				
+				draw();
+
+				// Callback listener for input keys
+				listenEvents();
+				
+				
+				
+			}
+			
+			
+			function listenEvents(){
+			
+				
+				kd.run(function () {
+					kd.tick();
+				});
+				
+				// 1- Rotate blades faster when 'R' key is pressed
+				// Note: This rotation one is extra thing.. The other two functionalites are
+				//		 can be tested as well.
+				kd.R.down(function () {
+					chopper.children[1].rotation.set(0, toRad(-(millis() / 0.5) % 360), 0);
+					rotationOverride = true;
+				});
+				
+				kd.R.up(function () {
+					rotationOverride = false;
+				});
+				
+
+				
+				
+				// 2- Keyboard input for moving chopper WSAD keys
+				
+				kd.W.down(function () {
+					chopper.translateOnAxis(new THREE.Vector3(0, 1, 0), moveSpeed * delta);
+				});
+				kd.S.down(function () {
+					chopper.translateOnAxis(new THREE.Vector3(0, -1, 0), moveSpeed * delta);
+				});
+				
+				kd.D.down(function () {
+					chopper.translateOnAxis(new THREE.Vector3(1, 0, 0), moveSpeed * delta);
+				});
+				kd.A.down(function () {
+					chopper.translateOnAxis(new THREE.Vector3(-1, 0, 0), moveSpeed * delta);
+				});
+			
+			
+			}
+			
+			function draw() {
+
+				// update delta every frame
+ 				delta = clock.getDelta();
+
+
+				if(rotationOverride == false){
+					chopper.children[1].rotation.set(0, toRad(-(millis() / 5) % 360), 0);
+				}
+				
+				requestAnimationFrame(draw);
+			
+				// 3- Up-down cosine movement of the chopper
+				
+				chopper.translateY(Math.cos(toRad((millis())/2 % 360)) * 0.5);
+				
+				renderer.render(scene, camera); //We render our scene with our camera
+			}
+			
+			/**
+			 * Create and add the hangar to the scene.
+			 * Hangar currently consists of 5 walls which have different colors.
+			 */
+			function addHangar() {
+				var hangar = new THREE.Object3D();
+				var halfPi = Math.PI / 2;
+				
+				var leftWall = createWall(0x555555);
+				leftWall.position.set(-10, 0, 0);
+				leftWall.rotation.set(0, halfPi, 0);
+				hangar.add(leftWall);
+				
+				var rightWall = createWall(0x333333);
+				rightWall.position.set(10, 0, 0);
+				rightWall.rotation.set(0, -halfPi, 0);
+				hangar.add(rightWall);
+				
+				var backWall = createWall(0x444444);
+				backWall.position.set(0, 0, -10);
+				hangar.add(backWall);
+				
+				var ceiling = createWall(0x111111);
+				ceiling.position.set(0, 10, 0);
+				ceiling.rotation.set(halfPi, 0, 0);
+				hangar.add(ceiling);
+				
+				var floor = createWall(0x222222);
+				floor.position.set(0, -10, 0);
+				floor.rotation.set(-halfPi, 0, 0);
+				hangar.add(floor);
+				
+				scene.add(hangar);
+			}
+			
+			/**
+			 * This function creates and adds the chopper.
+			 * --Task-- Finish this function
+			 */
+			function addChopper() {
+				var chopper = new THREE.Object3D();
+				
+				var body = createCube(0xeeeeee);
+				<!-- body -->
+				body.position.set(0, -10, -5);
+				body.scale.set(3, 2, 2);
+				//Set the scale and position of the body here:
+				//Scale the cube to be a long and thick cuboid
+				//Position it a bit towards the floor
+				//Try to have the body and the blades be somehow centered in the chopper's local coordinate system
+				chopper.add(body);
+				
+				//Group the blades in one Object3D called "blades"
+				var blades = new THREE.Object3D();
+				
+				
+				var blade1 = createCube(0xcceecc);
+				//Scale and position the blade 1 in relation to the blades object
+				blade1.position.set(3.2, 0, 0);
+				blade1.scale.set(3, 0.3, 0.5);
+				
+				var blade2 = createCube(0xcceecc);
+				//Scale and position the blade 2 in relation to the blades object
+				blade2.position.set(-3.2, 0, 0);
+				blade2.scale.set(3, 0.3, 0.5);
+				
+				blades.add(blade1);
+				blades.add(blade2);
+				
+				blades.position.set(0, -7.5, -5);
+				body.position.set(0, -10, -5);
+				
+				
+				//Add the blades to the chopper and chopper to the scene.
+				chopper.add(blades);
+				chopper.position.set(0, 5, 0);
+				scene.add(chopper);
+				
+				return chopper;
+			}
+			
+			/**
+			 * Creates a cube.
+			 * --Task-- finish this function.
+			 */
+			function createCube(colorCode) {
+				//You could create a cube using the THREE.BoxGeometry, but for now let us try to specify it ourselves...
+				//... it's just a cube, how hard can it be?
+				 
+				//Cube has 8 vertices, each vertex has 3 coordinates
+				var vertices = [
+					-1.0, -1.0, 1.0,
+					 1.0, -1.0, 1.0,
+					 1.0, 1.0, 1.0,
+					 -1.0, 1.0, 1.0,
+					 -1.0, -1.0, -1.0,
+					 1.0, -1.0, -1.0,
+					 1.0, 1.0, -1.0,
+					 -1.0, 1.0, -1.0,
+				];
+				
+				//Triangulized cube has 12 faces, each face has 3 indices
+				var faces = [
+					0, 1, 2, //Front face
+					0, 2, 3,
+					4, 0, 3,
+					4, 3, 7,
+					1, 5, 6,
+					1, 6, 2,
+					3, 2, 6,
+					3, 6, 7,
+					4, 5, 1,
+					4, 1, 0,
+					5, 4, 7,
+					5, 7, 6,
+				];
+				
+				//The indices of the faces depend on the order in which you specify the vertices.
+				//Remember which side is the front face and which the back face of each triangle.
+				
+				//We create our own custom geometry
+				var geometry = new THREE.Geometry();
+				var verticesCount = vertices.length;
+				var i;
+				
+				// ... for each vertex we need to create a THREE.Vector3 and push it into geometry.vertices array.
+				for (i = 0; i < verticesCount; i += 3) {
+					geometry.vertices.push(new THREE.Vector3(
+						vertices[i + 0],
+						vertices[i + 1],
+						vertices[i + 2]
+					));
+				}
+				
+				var facesIndexCount = faces.length;
+				
+				for (i = 0; i < facesIndexCount; i += 3) {
+					geometry.faces.push(new THREE.Face3(
+						faces[i + 0],
+						faces[i + 1],
+						faces[i + 2]
+					));
+				}
+				
+				// ... for each face we need to create a THREE.Face3 and push it into geometry.faces array.
+				
+				//You may want to "console.log(geometry);" in order to debug.
+				
+				//Create the corresponding material and a mesh, return it
+				var material = new THREE.MeshBasicMaterial({color: colorCode});
+				var cube = new THREE.Mesh(geometry, material);
+				
+				return cube;
+			}
+			
+			/**
+			 * Creates a wall using the plane geometry.
+			 */
+			function createWall(colorCode) {
+				var geometry = new THREE.PlaneGeometry(20, 20, 1);
+				var material = new THREE.MeshBasicMaterial({color: colorCode});
+				var wall = new THREE.Mesh(geometry, material);
+				
+				return wall;
+			}
+		
+		</script>
+	</head>
+	<body onload="onLoad()">
+		<div id="myCanvasContainer"></div>
+	</body>
+</html>
