@@ -1,0 +1,324 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Computer Graphics - Task 5.1</title>
+		<meta charset="UTF-8">
+		<script type="text/javascript" src="three.r96.js"></script>
+		<script type="text/javascript">
+		
+			var renderer, scene, camera1, camera2; //We have two cameras in our scene.
+			var chopper;
+			var cameraMode; //This is the mode for the second camera
+			var fov = 80; //This is the field-of-view for the main camera
+			var width = 800;
+			var height = 500;
+			var clock;
+			var fovChangeSpeed = 20;
+			
+			var cubeVertexShader, cubeFragmentShader;
+			
+			function millis() {
+
+				return (new Date()).getTime();
+			}
+			
+			function toRad(degree) {
+			
+				return Math.PI * 2 * degree / 360;
+			}
+		
+			function onLoad() { 
+
+				clock= new THREE.Clock();
+				time = clock.getElapsedTime();
+ 				delta = clock.getDelta();
+
+				var canvasContainer = document.getElementById('myCanvasContainer'); 
+				
+				cubeVertexShader = document.getElementById('vertexShader').textContent;
+				cubeFragmentShader = document.getElementById('fragmentShader').textContent;
+				
+				renderer = new THREE.WebGLRenderer(); 
+				renderer.setSize(width, height);
+				canvasContainer.appendChild(renderer.domElement);
+				
+				scene = new THREE.Scene();
+				
+				//This will be the main camera
+				camera1 = new THREE.PerspectiveCamera(fov, width / height, 1, 1000);
+				camera1.position.z = 11; //Push the camera along the z-direction
+				camera1.position.y = 0;
+				camera1.up = new THREE.Vector3(0, 1, 0);
+				camera1.lookAt(new THREE.Vector3(0, -5, 0)); //Let's look at the chopper
+				scene.add(camera1);
+				
+				//This will be the secondary camera
+				var size = 6; //This specifies the left, right, top and bottom clipping planes. You may need to change it for your case.
+				camera2 = new THREE.OrthographicCamera(-size, size, size, -size, 1, 1000);
+				changeCameraMode(0); //This function will align the camera 
+				scene.add(camera2);
+				
+				addHangar();
+				chopper = addChopper();
+				
+				draw();
+				
+				// --Task--
+				//Here you can implement a key listener for user interaction
+				window.addEventListener('keydown', function(event) {
+					if (event.keyCode == 37) { //Right arrow
+						//Decrease the fov and call the changeMainCameraFov.
+						changeMainCameraFov(camera1.fov - fovChangeSpeed * delta);
+					}
+					if (event.keyCode == 39) { //Left arrow
+						//Increase the fov and call the changeMainCameraFov.
+						changeMainCameraFov(camera1.fov + fovChangeSpeed * delta);
+					}
+				}, false);
+			}
+			
+			function draw() {
+
+				// update delta every frame
+				delta = clock.getDelta();
+
+				requestAnimationFrame(draw);
+				
+				// --Task-- Copy your blade rotation here
+
+				chopper.children[1].rotation.set(0, toRad(-(millis() / 10) % 360), 0);
+
+				// Here we will set the viewport for the full canvas, also disable the scissor test
+				renderer.setViewport(0, 0, width, height);
+				renderer.setScissorTest(false);
+				
+				renderer.render(scene, camera1); //We render our scene with our main camera
+				
+				// --Task-- Set the viewport, scissor test and render with the secondary camera.
+
+				
+				//Set the viewport to be 150x150 in size and located at the bottom right corner.
+				//Coordinates of the viewport start from the bottom-left corner.
+				//Use the renderer.setViewport(left, bottom, width, height) function.
+
+				renderer.setViewport(width-150, height-150, 150, 150);
+				
+				//We also need a scissor test, otherwise rest of the screen would also be overwritten.
+				//Use the renderer.setScissor(left, bottom, width, height) function. 
+				//Don't forget to enable the test
+
+				renderer.setScissor(width-150, height-150, 150, 150);
+				renderer.setScissorTest(true);
+				
+				//Here's a time switch, every 3 seconds it will try to change the mode of the second camera.
+				var timeSwitch = millis() % 9000;
+				if (timeSwitch < 3000) {
+					changeCameraMode(0);
+				} else if (timeSwitch < 6000) {
+					changeCameraMode(1);
+				} else {
+					changeCameraMode(2);
+				}
+
+				renderer.render(scene, camera2);
+			
+			}
+			
+			function changeCameraMode(mode) {
+				if (cameraMode === mode) {
+				
+					return;
+				}
+				if (mode == 0) {
+					camera2.up = new THREE.Vector3(0, 1, 0);
+					camera2.position.set(0, -5, 15);
+				} else if (mode == 1) {
+					
+					//--Task-- Set the camera to look at the top of the chopper
+					
+					camera2.up = new THREE.Vector3(0, 0, -1);
+					camera2.position.set(0, 10, 0);
+					
+					
+				} else if (mode == 2) {
+					
+					//--Task-- Set the camera to look at the front of the chopper
+					camera2.up = new THREE.Vector3(0, 1, 0);
+					camera2.position.set(10, -5, 0);
+					
+				}
+				camera2.lookAt(new THREE.Vector3(0, -5, 0));
+				cameraMode = mode;
+			}
+			
+			function changeMainCameraFov(fov) {
+				// --Task-- change the fov of the main camera. Call the updateProjectionMatrix() for the change to take effect.
+				camera1.fov = fov;
+				console.log(fov);
+				camera1.updateProjectionMatrix();
+			}
+			
+			function addHangar() {
+				var hangar = new THREE.Object3D();
+				var halfPi = Math.PI / 2;
+				
+				var leftWall = createWall(0x555555);
+				leftWall.position.set(-10, 0, 0);
+				leftWall.rotation.set(0, halfPi, 0);
+				hangar.add(leftWall);
+				
+				var rightWall = createWall(0x333333);
+				rightWall.position.set(10, 0, 0);
+				rightWall.rotation.set(0, -halfPi, 0);
+				hangar.add(rightWall);
+				
+				var backWall = createWall(0x444444);
+				backWall.position.set(0, 0, -10);
+				hangar.add(backWall);
+				
+				var ceiling = createWall(0x111111);
+				ceiling.position.set(0, 10, 0);
+				ceiling.rotation.set(halfPi, 0, 0);
+				hangar.add(ceiling);
+				
+				var floor = createWall(0x222222);
+				floor.position.set(0, -10, 0);
+				floor.rotation.set(-halfPi, 0, 0);
+				hangar.add(floor);
+				
+				scene.add(hangar);
+			}
+			
+			function addChopper() {
+				var chopper = new THREE.Object3D();
+				
+				var body = createCube(0xeeeeee);
+				<!-- body -->
+				body.position.set(0, -5, 0);
+				body.scale.set(3, 2, 2);
+				//Set the scale and position of the body here:
+				//Scale the cube to be a long and thick cuboid
+				//Position it a bit towards the floor
+				//Try to have the body and the blades be somehow centered in the chopper's local coordinate system
+				chopper.add(body);
+				
+				//Group the blades in one Object3D called "blades"
+				var blades = new THREE.Object3D();
+				
+				var blade1 = createCube(0xcceecc);
+				//Scale and position the blade 1 in relation to the blades object
+				blade1.position.set(3.2, 0, 0);
+				blade1.scale.set(3, 0.3, 0.5);
+				
+				var blade2 = createCube(0xcceecc);
+				//Scale and position the blade 2 in relation to the blades object
+				blade2.position.set(-3.2, 0, 0);
+				blade2.scale.set(3, 0.3, 0.5);
+				blade2.rotation.z = Math.PI;
+				blade2.rotation.x = Math.PI;
+				
+				blades.add(blade1);
+				blades.add(blade2);
+				
+				blades.position.set(0, -7.5, -5);
+				body.position.set(0, -10, -5);
+				
+				
+				//Add the blades to the chopper and chopper to the scene.
+				chopper.add(blades);
+				chopper.position.set(0, 5, 0);
+				scene.add(chopper);
+				
+				return chopper;
+			}
+			
+			function createWall(colorCode) {
+				var geometry = new THREE.PlaneGeometry(20, 20, 1);
+				var material = new THREE.MeshBasicMaterial({color: colorCode});
+				var wall = new THREE.Mesh(geometry, material);
+				
+				return wall;
+			}
+			
+			function createCube(colorCode) {
+				var geometry = new THREE.BoxBufferGeometry(2, 2, 2); //Vertices shared across one cube face only!
+				
+				//The THREE.Color class allows some operations to be done with the color
+				//Let us say that a dark color is half of the color given to the function
+				var darkColor = new THREE.Color(colorCode).multiplyScalar(0.5);
+
+				var lightColor = new THREE.Color(colorCode);
+				
+				//--Task-- Create also the lightColor object.
+				
+				/*
+				  There are 2 types of variables we can send to the GPU:
+				  Uniform variable - a variable that is the same for all vertices and fragments
+				  Attribute variable - a variable that has a specific value for each vertex
+				  In this task we will use attribute variables to specify colors for the vertices.
+				*/
+				
+				/*  --Task--
+					Attribute variables used like this:
+					1) Create a Float32Array (typed JS array) with a correct size, eg: (vertexCount * elementsPerVertexCount)
+					2) Assign correct values to each of the elements in the typed array (use a for loop here)
+					3) Call something like: geometry.addAttribute("variableName", new THREE.BufferAttribute(yourTypedArray, elementsPerVertexCount));
+				*/
+
+				var colorsArray = [];
+				for (var i = 0; i < 24; ++i) {
+					// After hours of hitting my head around 
+					// I came across this weird pattern of numbers in JS may be you can enlighten me on this :/.. 
+					if((i >= 4 && i <= 8) 
+						|| i == 10 
+						|| i == 16 
+						|| i == 18 
+						|| i == 21 
+						|| i == 23)
+						colorsArray.push(darkColor.r, darkColor.g, darkColor.b);
+					else
+						colorsArray.push(lightColor.r, lightColor.g, lightColor.b);
+				}
+				geometry.addAttribute('vertexColor', new THREE.BufferAttribute(new Float32Array(colorsArray), 3));
+
+				
+				//ShaderMaterial wants the shader codes and values for uniform variables (which we do not use here).
+				var material = new THREE.ShaderMaterial({
+					vertexShader: cubeVertexShader,    //Assign shader codes
+					fragmentShader: cubeFragmentShader
+				});
+				var cube = new THREE.Mesh(geometry, material); //We create our cube with that material
+				
+				return cube;
+			}
+			
+		</script>
+		<!-- --Task-- copy your shader codes here -->
+		<script id="vertexShader" type="x-shader/x-vertex">
+			attribute vec3 vertexColor; 	//This is the color we are sending from the CPU
+			varying vec3 interpolatedColor; //Varying variable is interpolated for the rasterized fragments between the vertices (like in the Bresenham Triangle task)
+			void main() {
+				//1) Assign the attribute color value to the varying color value.
+
+				//2) Transform our vertex position by multiplying it from the left with modelview (MV) matrix, then from the left with projection (P) matrix.
+				//   So like: P * MV * vertex
+				//   Hint: Inspect the shader code to see what names Three.js actually gives those matrices
+
+				interpolatedColor = vertexColor;
+
+				gl_Position =  projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			}
+		</script>
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			varying vec3 interpolatedColor;
+			
+			void main() {
+				//Assign the interpolated color to the correct variable.
+				gl_FragColor = vec4( interpolatedColor ,1);
+			}
+		</script>
+	</head>
+	<body onload="onLoad()">
+		<div id="myCanvasContainer"></div>
+	</body>
+</html>
